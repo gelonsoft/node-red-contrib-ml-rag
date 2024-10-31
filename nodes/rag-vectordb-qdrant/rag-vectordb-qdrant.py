@@ -130,9 +130,9 @@ def _build_payloads(
 
     return payloads
 
-def _generate_batches(texts: Iterable[str], embeddings: List[float], metadatas: List[dict], ids: Sequence[str | int],
+def _generate_batches(texts: Iterable[str], embeddings: List[float], metadatas: List[dict], ids: Sequence[Any],
                       batch_size: int = 64,
-                      ) -> Generator[tuple[list[str | int], list[PointStruct]], Any, None]:
+                      ) -> Generator[tuple[list[Any], list[PointStruct]], Any, None]:
     texts_iterator = iter(texts)
     metadatas_iterator = iter(metadatas or [])
     ids_iterator = iter(ids or [uuid4().hex for _ in iter(texts)])

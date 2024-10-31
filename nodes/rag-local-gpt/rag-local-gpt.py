@@ -97,7 +97,7 @@ while True:
 			documents=data['documents']
 			documents=[Document(page_content=obj['page_content'] if 'page_content' in obj else '') for obj in documents]
 			if 'prompt_only' in data and data['prompt_only']==1:
-				context['prompt'].invoke({"context": documents, "input": data['input']})
+				res=context['prompt'].invoke({"context": documents, "input": data['input']})
 			else:
 				res=context['document_chain'].invoke({"context": documents, "input": data['input']})
 			content=json.dumps({"state":"success","result":res})

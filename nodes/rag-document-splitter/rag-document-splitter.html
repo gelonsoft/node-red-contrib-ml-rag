@@ -1,0 +1,70 @@
+<script type="text/javascript">
+    RED.nodes.registerType('rag-document-splitter', {
+        category: 'machine learning',
+        color: '#99a664',
+        defaults: {
+            name: {value: "rag-document-splitter"},
+            chunkSize:{value:2048},
+            chunkOverlap:{value:0}
+        },
+        inputs: 1,
+        outputs: 2,
+        icon: "file.png",
+        label: function () {
+            return this.name || "rag-document-splitter";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="rag-document-splitter">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-chunkSize"><i class="icon-tag"></i>chunkSize</label>
+        <input type="text" id="node-input-chunkSize" placeholder="chunkSize">
+    </div>
+        <div class="form-row">
+        <label for="node-input-chunkOverlap"><i class="icon-tag"></i>chunkOverlap</label>
+        <input type="text" id="node-input-chunkOverlap" placeholder="chunkOverlap">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="rag-document-splitter">
+    <p>A node that loads PDF document via LangChain RecursiveCharacterTextSplitter(chunk_size = config['chunkSize'], chunk_overlap = config['chunkOverlap'])</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload.documents
+            <span class="property-type">array of {page_content?:string,metadata:json}</span>
+        </dt>
+        <dd>array of documents</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Standard output
+            <dl class="message-properties">
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{state:"success",documents:array of {page_content:string,metadata?:json}</dd>
+            </dl>
+        </li>
+        <li>Standard error
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">string or json</span></dt>
+                <dd>the standard error of the command.</dd>
+            </dl>
+        </li>
+    </ol>
+
+    <h3>Details</h3>
+    <p>
+
+    </p>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://github.com/gelonsoft/node-red-contrib-ml-rag">GitHub</a> - the nodes github repository</li>
+    </ul>
+</script>

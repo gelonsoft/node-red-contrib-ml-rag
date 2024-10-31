@@ -1,0 +1,114 @@
+<script type="text/javascript">
+    RED.nodes.registerType('rag-local-gpt', {
+        category: 'machine learning',
+        color: '#99a664',
+        defaults: {
+            name: {value: "rag-local-gpt"},
+            modelNameOrPath: {value: 'openai-community/gpt2'},
+            promptTemplate: {value: "Text:\n{context}\n\nQuestion: {input}"},
+                deviceMap: {value: 'auto'},
+                maxNewTokens: {value: 2048},
+                doSample: {value: 1},
+                topK: {value: 0},
+                topP: {value: 0.15},
+                temperature: {value: 0.3},
+                repetitionPenalty: {value: 1.1},
+            },
+            inputs: 1,
+            outputs: 2,
+            icon: "file.png",
+            label: function () {
+                return this.name || "rag-local-gpt";
+            }
+        });
+</script>
+
+<script type="text/x-red" data-template-name="rag-local-gpt">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-modelNameOrPath"><i class="icon-tag"></i>modelNameOrPath</label>
+        <input type="text" id="node-input-modelNameOrPath" placeholder="modelNameOrPath">
+        <p><a href="https://huggingface.co/models?pipeline_tag=text-generation&p=1&sort=trending">Other Hugging Face text-generation models</a></p>
+    </div>
+    <div class="form-row">
+        <label for="node-input-promptTemplate"><i class="icon-tag"></i>promptTemplate</label>
+        <input type="text" id="node-input-promptTemplate" placeholder="promptTemplate">
+    </div>
+    <div class="form-row">
+        <label for="node-input-deviceMap"><i class="icon-tag"></i>deviceMap</label>
+        <input type="text" id="node-input-deviceMap" placeholder="deviceMap">
+    </div>
+    <div class="form-row">
+        <label for="node-input-maxNewTokens"><i class="icon-tag"></i>maxNewTokens</label>
+        <input type="text" id="node-input-maxNewTokens" placeholder="maxNewTokens">
+    </div>
+    <div class="form-row">
+        <label for="node-input-doSample"><i class="icon-tag"></i>doSample</label>
+        <input type="text" id="node-input-doSample" placeholder="doSample">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topK"><i class="icon-tag"></i>topK</label>
+        <input type="text" id="node-input-topK" placeholder="topK">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topP"><i class="icon-tag"></i>topP</label>
+        <input type="text" id="node-input-topP" placeholder="topP">
+    </div>
+    <div class="form-row">
+        <label for="node-input-temperature"><i class="icon-tag"></i>temperature</label>
+        <input type="text" id="node-input-temperature" placeholder="temperature">
+    </div>
+    <div class="form-row">
+        <label for="node-input-repetitionPenalty"><i class="icon-tag"></i>repetitionPenalty</label>
+        <input type="text" id="node-input-repetitionPenalty" placeholder="repetitionPenalty">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="rag-local-gpt">
+    <p>A node that generates answer to prompt using HuggingFace sentense-transformers model via Langchain create_stuff_documents_chain)</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload.documents
+            <span class="property-type">array of {page_content:string}</span>
+        </dt>
+        <dd>array of documents</dd>
+    </dl>
+    <dl class="message-properties">
+        <dt>payload.input
+            <span class="property-type">string</span>
+        </dt>
+        <dd>question prompt</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Standard output
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">json</span></dt>
+                <dd>{"state":"success",result:string as prompt+answer}</dd>
+            </dl>
+        </li>
+        <li>Standard error
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">string</span></dt>
+                <dd>the standard error of the command.</dd>
+            </dl>
+        </li>
+    </ol>
+
+    <h3>Details</h3>
+    <p>
+
+    </p>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://huggingface.co/models?pipeline_tag=text-generation&p=1&sort=trending">Other Hugging Face text-generation models</a></li>
+        <li><a href="https://python.langchain.com/docs/versions/migrating_chains/stuff_docs_chain/">LangChain create_stuff_documents_chain</a></li>
+        <li><a href="https://github.com/gelonsoft/node-red-contrib-ml-rag">GitHub</a> - the nodes github repository</li>
+    </ul>
+</script>

@@ -1,0 +1,73 @@
+<script type="text/javascript">
+    RED.nodes.registerType('rag-pdf-loader', {
+        category: 'machine learning',
+        color: '#99a664',
+        defaults: {
+            name: {value: "rag-pdf-loader"},
+        },
+        inputs: 1,
+        outputs: 2,
+        icon: "file.png",
+        label: function () {
+            return this.name || "rag-pdf-loader";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="rag-pdf-loader">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="rag-pdf-loader">
+    <p>A node that loads PDF document via LangChain PyPDFLoader</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload.buffer
+            <span class="property-type">array of bytes (0..127)</span>
+        </dt>
+        <dd>pdf file content</dd>
+        <dt>payload.filename
+            <span class="property-type">string</span>
+        </dt>
+        <p>or</p>
+        <dd>pdf file name</dd>
+        <dt>payload.file
+            <span class="property-type">string</span>
+        </dt>
+        <dd>file on local filesystem</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Standard output
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">string</span></dt>
+                <dd>the array of Document</dd>
+            </dl>
+        </li>
+        <li>Standard error
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">string</span></dt>
+                <dd>the standard error of the command.</dd>
+            </dl>
+        </li>
+    </ol>
+
+    <h3>Details</h3>
+    <p>
+        <code>msg.payload.buffer</code> is a binary data containing pdf file
+        <code>msg.payload.filename</code> is a filename of a binary data
+    </p>
+    <p>
+        or <code>msg.payload.file</code> is a path to PDF file on local filesystem
+    </p>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://github.com/gelonsoft/node-red-contrib-ml-rag">GitHub</a> - the nodes github repository</li>
+    </ul>
+</script>

@@ -1,0 +1,206 @@
+<script type="text/javascript">
+    RED.nodes.registerType('rag-vectordb-qdrant', {
+        category: 'machine learning',
+        color: '#99a664',
+        defaults: {
+            name: {value: "rag-vectordb-qdrant"},
+            localSavePath: {value: './'},
+            remoteUrl: {value: ''},
+            remoteApiKey: {value: ''},
+        },
+        inputs: 1,
+        outputs: 2,
+        icon: "file.png",
+        label: function () {
+            return this.name || "rag-vectordb-qdrant";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="rag-vectordb-qdrant">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-localSavePath"><i class="icon-tag"></i>localSavePath</label>
+        <input type="text" id="node-input-localSavePath" placeholder="localSavePath">
+    </div>
+    <div class="form-row">
+        <label for="node-input-remoteUrl"><i class="icon-tag"></i>remoteUrl</label>
+        <input type="text" id="node-input-remoteUrl" placeholder="remoteUrl">
+    </div>
+    <div class="form-row">
+        <label for="node-input-remoteApiKey"><i class="icon-tag"></i>remoteApiKey</label>
+        <input type="text" id="node-input-remoteApiKey" placeholder="remoteApiKey">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="rag-vectordb-qdrant">
+    <p>A node that is interface to Qdrant vector db as embedded Qdrant local server or access to remote Qdrant server)</p>
+    <p>Set localSavePath to start local embedded server or remoteUrl+remoteApiKey for remote connection, not both parameters</p>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload.command
+            <span class="property-type">string</span>
+        </dt>
+        <dd>command is one of add_document|add_collection|delete_collection|delete_documents|scroll|query_by_ids|similarity_search</dd>
+        <p>args for payload.command="add_document"</p>
+          <dt>payload.documents
+            <span class="property-type">array of {id?:string|int,page_content:string,metadata?:json,embeddings:float[]}</span>
+            </dt>
+           <dd>documents to add</dd>
+            <dt>payload.collection_name
+            <span class="property-type">string</span>
+            </dt>
+           <dd>collection name</dd>
+        <p>args for payload.command="add_collection"</p>
+            <dt>payload.collection_name
+            <span class="property-type">string</span>
+            </dt>
+           <dd>collection name</dd>
+           <dt>payload.size
+            <span class="property-type">int</span>
+            </dt>
+           <dd>embeddings vector size</dd>
+            <dt>payload.drop_if_exists
+            <span class="property-type">int 1 or 0</span>
+            </dt>
+           <dd>if 1 then drops existing collection with this name</dd>
+        <p>args for payload.command="delete_collection"</p>
+            <dt>payload.collection_name
+            <span class="property-type">string</span>
+            </dt>
+           <dd>collection name</dd>
+        <p>args for payload.command="delete_documents"</p>
+            <dt>payload.collection_name
+            <span class="property-type">string</span>
+            </dt>
+           <dd>collection name</dd>
+            <dt>payload.ids
+            <span class="property-type">array of string|int</span>
+            </dt>
+           <dd>Ids of documents to delete</dd>
+        <p>args for payload.command="similarity_search"</p>
+            <dt>payload.collection_name
+            <span class="property-type">string</span>
+            </dt>
+           <dd>collection name</dd>
+            <dt>payload.k
+            <span class="property-type">int</span>
+            </dt>
+           <dd>limits output documents</dd>
+            <dt>payload.with_payload
+            <span class="property-type">int 0 or 1</span>
+            </dt>
+           <dd>return payload of documents (page_content and metadata)</dd>
+            <dt>payload.with_vectors
+            <span class="property-type">int 0 or 1</span>
+            </dt>
+           <dd>return embeddings of documents</dd>
+            <dt>payload.search_type
+            <span class="property-type">string as "mmr" or any other value</span>
+            </dt>
+           <dd>postprocess ranking using maximal marginal relevance algorithm</dd>
+            <dt>payload.score_threshold
+            <span class="property-type">float 0..1</span>
+            </dt>
+           <dd>filter documents with score less than score_threshold</dd>
+        <p>args for payload.command="scroll"</p>
+            <dt>payload.collection_name
+            <span class="property-type">string</span>
+            </dt>
+           <dd>collection name</dd>
+            <dt>payload.offset
+            <span class="property-type">string or int</span>
+            </dt>
+           <dd>skips int(offset) documents or documents before document.id from previous scroll</dd>
+            <dt>payload.limit
+            <span class="property-type">int</span>
+            </dt>
+           <dd>limit returning documents count</dd>
+            <dt>payload.with_payload
+            <span class="property-type">int 0 or 1</span>
+            </dt>
+           <dd>return payload of documents (page_content and metadata)</dd>
+            <dt>payload.with_vectors
+            <span class="property-type">int 0 or 1</span>
+            </dt>
+           <dd>return embeddings of documents</dd>
+        <p>args for payload.command="query_by_ids"</p>
+            <dt>payload.collection_name
+            <span class="property-type">string</span>
+            </dt>
+           <dd>collection name</dd>
+            <dt>payload.ids
+            <span class="property-type">array of string|int</span>
+            </dt>
+           <dd>Ids of documents to query</dd>
+            <dt>payload.with_payload
+            <span class="property-type">int 0 or 1</span>
+            </dt>
+           <dd>return payload of documents (page_content and metadata)</dd>
+            <dt>payload.with_vectors
+            <span class="property-type">int 0 or 1</span>
+            </dt>
+           <dd>return embeddings of documents</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Standard output
+            <p>Output for command "add_document"</p>
+            <dl class="message-properties">
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{"state":"success","added_ids": array of str|int - ids documents added}</dd>
+            </dl>
+            <p>Output for command "add_collection"</p>
+            <dl class="message-properties">
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{"state":"success"}</dd>
+            </dl>
+            <p>Output for command "delete_collection"</p>
+            <dl class="message-properties">
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{"state":"success"}</dd>
+            </dl>
+            <p>Output for command "delete_documents"</p>
+            <dl class="message-properties">
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{"state":"success","status": int 1 or 0 - success or not}</dd>
+            </dl>
+            <p>Output for command "scroll"</p>
+            <dl class="message-properties">
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{"state":"success","offset":int|str - last document id,"documents":{page_content?:string,metadata?:json,embeddings?:float[]}[]}</dd>
+            </dl>
+            <p>Output for command "query_by_ids"</p>
+            <dl class="message-properties">
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{"state":"success","documents":{page_content?:string,metadata?:json,embeddings?:float[]}[]}</dd>
+            </dl>
+            <p>Output for command "similarity_search"</p>
+            <dl class="message-properties">
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{"state":"success","documents":{score:float 0..1,page_content?:string,metadata?:json,embeddings?:float[]}[]}}</dd>
+            </dl>
+        </li>
+        <li>Standard error
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">string</span></dt>
+                <dd>the standard error of the command.</dd>
+            </dl>
+        </li>
+    </ol>
+
+    <h3>Details</h3>
+    <p>
+
+    </p>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://qdrant.tech/">Qdrant</a> - awesome vector database</li>
+        <li><a href="https://github.com/gelonsoft/node-red-contrib-ml-rag">GitHub</a> - the nodes github repository</li>
+    </ul>
+</script>

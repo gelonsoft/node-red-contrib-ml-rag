@@ -37,7 +37,7 @@ while True:
 		#print(data)
 		if 'documents' in data:
 			documents=data['documents']
-			documents=[Document(page_content=obj['page_content'] if 'page_content' in obj else '',metadata=obj['metadata'] if 'metadata' in obj else None) for obj in documents]
+			documents=[Document(page_content=obj['page_content'] if 'page_content' in obj else '',metadata=obj['metadata'] if 'metadata' in obj else {}) for obj in documents]
 			documents=text_splitter.split_documents(documents)
 			documents=[{"page_content":obj.page_content if hasattr(obj,'page_content') else "","metadata":obj.metadata if hasattr(obj,'metadata') else {}} for obj in documents]
 			content=json.dumps({"state":"success","documents":documents})
@@ -47,4 +47,4 @@ while True:
 		else:
 			pass
 	except BaseException as e:
-		print(e,file=sys.__stderr__,flush=True)
+		print(repr(e),file=sys.__stderr__,flush=True)

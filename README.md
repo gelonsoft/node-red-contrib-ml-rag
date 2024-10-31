@@ -15,11 +15,11 @@ To install the latest version use the Menu - Manage palette option and search fo
     npm i node-red-contrib-ml-rag
 
 ## Usage
-rag-pdf-loader: parse PDF files to text page-by-page using LangChain PyPDFLoader
-rag-document-splitter: split text pages to chunks using LangChain RecursiveCharacterTextSplitter
-rag-embedding-generator: generate embeddings for text using pretrained Hugging Face sentence transformers models. See https://huggingface.co/models?library=sentence-transformers
-rag-vectordb-qdrant: awesome vector database Qdrant to store vectors/embedding and similarity search by them
-rag-local-gpt: LLM/GPT model to generate text by prompt using pretrained Hugging Face text generation models and LangChain HuggingFacePipeline. See https://huggingface.co/models?pipeline_tag=text-generation
+* rag-pdf-loader: parse PDF files to text page-by-page using LangChain PyPDFLoader
+* rag-document-splitter: split text pages to chunks using LangChain RecursiveCharacterTextSplitter
+* rag-embedding-generator: generate embeddings for text using pretrained Hugging Face sentence transformers models. See https://huggingface.co/models?library=sentence-transformers
+* rag-vectordb-qdrant: awesome vector database Qdrant to store vectors/embedding and similarity search by them
+* rag-local-gpt: LLM/GPT model to generate text by prompt using pretrained Hugging Face text generation models and LangChain HuggingFacePipeline. See https://huggingface.co/models?pipeline_tag=text-generation
 
 Example flows available here:
 ```json

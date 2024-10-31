@@ -4,6 +4,7 @@ old_stdout=sys.__stdout__
 silent_stdout = sys.__stderr__
 sys.stdout = silent_stdout
 
+import os
 import traceback
 import json
 from urllib.parse import unquote
@@ -48,4 +49,7 @@ while True:
 		else:
 			pass
 	except BaseException as e:
-		print(traceback.format_exc(),file=sys.__stderr__,flush=True)
+		if os.getenv('DEBUG','0')=='1':
+			raise e
+		else:
+			print(traceback.format_exc(),file=sys.__stderr__,flush=True)

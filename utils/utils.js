@@ -13,22 +13,28 @@ const initProc = (node) => {
         })
 
         //handle results
+        let stdOutData=''
         node.proc.stdout.on('data', (data) => {
-            node.status(status.DONE)
-            //console.log("stdout data",data)
-            try {
-                node.msg.payload = JSON.parse(data.toString())
-            } catch (err) {
-                node.msg.payload = data.toString()
+            const dataStr=data.toString()
+            stdOutData+=data.toString()
+            if (dataStr.indexOf("\n")!==-1) {
+                node.status(status.DONE)
+                //console.log("stdout data",data)
+                try {
+                    node.msg.payload = JSON.parse(stdOutData)
+                } catch (err) {
+                    node.msg.payload = stdOutData
+                }
+                if (node.msg.payload!=="\n" && node.msg.payload!=="\r\n") {
+                    var msg = node.msg
+                    if (node.wires.length > 1) {
+                        msg = [node.msg, null]
+                    }
+                    node.send(msg)
+                }
             }
-			if (node.msg.payload!=="\n" && node.msg.payload!=="\r\n") {
-				var msg = node.msg
-				if (node.wires.length > 1) {
-					msg = [node.msg, null]
-				}
-				node.send(msg)
-			}
         })
+
 
         //handle errors
         node.proc.stderr.on('data', (data) => {

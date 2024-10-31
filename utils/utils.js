@@ -6,115 +6,116 @@ const pcmd = process.platform === 'linux' ? 'python3' : 'python'
 
 //initialize child process
 const initProc = (node) => {
-	if (node.proc == null){
-		node.proc = spawn(pcmd, [node.file], {stdio:['pipe', 'pipe','pipe'],env:{...process.env, PYTHONUNBUFFERED:"1"}})
+    if (node.proc == null) {
+        node.proc = spawn(pcmd, [node.file], {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {...process.env, PYTHONUNBUFFERED: "1"}
+        })
 
-		//handle results
-		node.proc.stdout.on('data', (data) => {
-		  node.status(status.DONE)
-			//console.log("stdout data",data)
-			try{
-				node.msg.payload = JSON.parse(data.toString())
+        //handle results
+        node.proc.stdout.on('data', (data) => {
+            node.status(status.DONE)
+            //console.log("stdout data",data)
+            try {
+                node.msg.payload = JSON.parse(data.toString())
+            } catch (err) {
+                node.msg.payload = data.toString()
+            }
+			if (node.msg.payload!=="\n" && node.msg.payload!=="\r\n") {
+				var msg = node.msg
+				if (node.wires.length > 1) {
+					msg = [node.msg, null]
+				}
+				node.send(msg)
 			}
-			catch(err){
-				node.msg.payload = data.toString()
-			}
-			var msg = node.msg
-			if(node.wires.length > 1){
-				msg = [node.msg, null]
-			}
-			node.send(msg)
-		})
+        })
 
-		//handle errors
-		node.proc.stderr.on('data', (data) => {
-			node.status(status.ERROR)
-			console.error("Error",data.toString())
-			try{
-				node.msg.payload = JSON.parse(data.toString())
-			}
-			catch(err){
-				node.msg.payload = data.toString()
-			}
-			var msg = node.msg
-			if(node.wires.length > 1){
-				msg = [null, node.msg]
-			}
-			node.send(msg)
-		})
+        //handle errors
+        node.proc.stderr.on('data', (data) => {
+            node.status(status.ERROR)
+            console.error("Error", data.toString())
+            try {
+                node.msg.payload = JSON.parse(data.toString())
+            } catch (err) {
+                node.msg.payload = data.toString()
+            }
+            var msg = node.msg
+            if (node.wires.length > 1) {
+                msg = [null, node.msg]
+            }
+            node.send(msg)
+        })
 
-		//handle crashes
-		node.proc.on('exit', () => {
-			console.log("subprocess exit")
-		  node.proc = null
-		})
+        //handle crashes
+        node.proc.on('exit', () => {
+            console.log("subprocess exit")
+            node.proc = null
+        })
 
-		//send node configurations to child
-		node.proc?.stdin?.write(encodeURI(JSON.stringify(node.config)) + '\n')
-	}
+        //send node configurations to child
+        node.proc?.stdin?.write(encodeURI(JSON.stringify(node.config)) + '\n')
+    }
 }
 
 //send payload as json to python script
 const python = (node) => {
-	initProc(node)
-	node.proc?.stdin?.write(encodeURI(JSON.stringify(node.msg.payload)) + '\n')
+    initProc(node)
+    node.proc?.stdin?.write(encodeURI(JSON.stringify(node.msg.payload)) + '\n')
 }
 
 module.exports = {
-	python:python,
-	//parse string containing comma separated integers
-	listOfInt: (str) => {
-		var ints = null
-		try{
-			ints = str.replace(' ', '').split(',').map((n) => parseInt(n))
-			if(ints.some(isNaN)){
-				ints = null
-			}
-		}
-		finally{
-			return ints
-		}
-	},
+    python: python,
+    //parse string containing comma separated integers
+    listOfInt: (str) => {
+        var ints = null
+        try {
+            ints = str.replace(' ', '').split(',').map((n) => parseInt(n))
+            if (ints.some(isNaN)) {
+                ints = null
+            }
+        } finally {
+            return ints
+        }
+    },
 
-	//initialize node
-	run: (RED, node, config) => {
-	  RED.nodes.createNode(node, config)
-		node.status(status.NONE)
+    //initialize node
+    run: (RED, node, config) => {
+        RED.nodes.createNode(node, config)
+        node.status(status.NONE)
 
-		node.proc = null
-		node.msg = {}
-		initProc(node)
+        node.proc = null
+        node.msg = {}
+        initProc(node)
 
-		//process message
-		const handle = (msg) => {
-			node.status(status.PROCESSING)
-			node.msg = msg
-			if(node.topic != undefined){
-				node.msg.topic = node.topic
-			}
-			//send to python child
-			python(node)
-		}
+        //process message
+        const handle = (msg) => {
+            node.status(status.PROCESSING)
+            node.msg = msg
+            if (node.topic != undefined) {
+                node.msg.topic = node.topic
+            }
+            //send to python child
+            python(node)
+        }
 
-		//handle input
-		node.on('input', (msg) => {
-			//if the node requires preprocessing of message, call preMsg
-			if(node.preMsg != undefined){
-				node.preMsg(msg, handle)
-			}
-			else{
-				handle(msg)
-			}
-		})
+        //handle input
+        node.on('input', (msg) => {
+            //if the node requires preprocessing of message, call preMsg
+            if (node.preMsg != undefined) {
+                node.preMsg(msg, handle)
+            } else {
+                handle(msg)
+            }
+        })
 
-		//when node is closed, kill child process
-		node.on('close', (done) => {
-			node.status(status.NONE)
-			if(node.proc != null){
-				node.proc.kill()
-				node.proc = null
-			}
-			done()
-    })
-	}
+        //when node is closed, kill child process
+        node.on('close', (done) => {
+            node.status(status.NONE)
+            if (node.proc != null) {
+                node.proc.kill()
+                node.proc = null
+            }
+            done()
+        })
+    }
 }

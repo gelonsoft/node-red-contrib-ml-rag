@@ -70,7 +70,7 @@ def create_document_chain(p_config):
 	prompt=PromptTemplateCutContextToSize(input_variables=["input","context"],template=p_config['promptTemplate'])
 	prompt.set_llm(model_llm_input_size,llm)
 	document_chain = create_stuff_documents_chain(llm, prompt)
-	return document_chain
+	return (document_chain,prompt)
 
 while True:
 	#read request
@@ -78,7 +78,10 @@ while True:
 		data = json.loads(unquote(input()))
 		#Lazy load
 		if context['document_chain'] is None:
-			context['document_chain']=create_document_chain(config)
+			doc_chain=create_document_chain(config)
+			context['document_chain']=doc_chain[0]
+			context['prompt']=doc_chain[1]
+			doc_chain=None
 		#config reload in runtime
 		if 'config' in data:
 			data_conf=data['config']
@@ -86,11 +89,17 @@ while True:
 				config['modelNameOrPath']=data_conf['modelNameOrPath']
 			if 'promptTemplate' in data_conf:
 				config['promptTemplate']=data_conf['promptTemplate']
-			context['document_chain']=create_document_chain(config)
+			doc_chain=create_document_chain(config)
+			context['document_chain']=doc_chain[0]
+			context['prompt']=doc_chain[1]
+			doc_chain=None
 		if 'documents' in data and 'input' in data:
 			documents=data['documents']
 			documents=[Document(page_content=obj['page_content'] if 'page_content' in obj else '') for obj in documents]
-			res=context['document_chain'].invoke({"context": documents, "input": data['input']})
+			if 'prompt_only' in data and data['prompt_only']==1:
+				context['prompt'].invoke({"context": documents, "input": data['input']})
+			else:
+				res=context['document_chain'].invoke({"context": documents, "input": data['input']})
 			content=json.dumps({"state":"success","result":res})
 			sys.stdout = old_stdout
 			print(content+"\n",flush=True)

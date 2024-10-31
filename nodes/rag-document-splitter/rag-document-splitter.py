@@ -4,6 +4,7 @@ old_stdout=sys.__stdout__
 silent_stdout = sys.__stderr__
 sys.stdout = silent_stdout
 
+import traceback
 import json
 from urllib.parse import unquote
 from langchain_core.documents.base import Document
@@ -47,4 +48,4 @@ while True:
 		else:
 			pass
 	except BaseException as e:
-		print(repr(e),file=sys.__stderr__,flush=True)
+		print(traceback.format_exc(),file=sys.__stderr__,flush=True)

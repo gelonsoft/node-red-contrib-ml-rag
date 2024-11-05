@@ -65,7 +65,7 @@ context={'document_chain':None}
 def create_document_chain(p_config):
 	model_llm = AutoModelForCausalLM.from_pretrained(p_config['modelNameOrPath'])
 	model_llm_input_size=model_llm.lm_head.in_features
-	tokenizer_llm = AutoTokenizer.from_pretrained(p_config['modelNameOrPath'], max_length=model_llm_input_size, truncation=True)
+	tokenizer_llm = AutoTokenizer.from_pretrained(p_config['modelNameOrPath'],model_max_length=model_llm_input_size,max_length=model_llm_input_size,padding_side='right',truncation_side='right',truncation=True)
 	tokenizer_llm.pad_token = tokenizer_llm.eos_token
 	pipe = pipeline("text-generation",
 					model=model_llm, tokenizer=tokenizer_llm,

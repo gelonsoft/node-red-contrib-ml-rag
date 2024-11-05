@@ -61,7 +61,7 @@ while True:
 			documents=[{"page_content":obj.page_content if hasattr(obj,'page_content') else "","metadata":obj.metadata if hasattr(obj,'metadata') else {}} for obj in documents]
 			content=json.dumps({"state":"success","documents":documents})
 			sys.stdout = old_stdout
-			print(content+"\n",flush=True)
+			print(base64.b64encode(content.encode()).decode('utf-8')+"\t\t\t\n",flush=True)
 			sys.stdout = silent_stdout
 		else:
 			print('{"state":"error"}'+"\n",file=sys.__stderr__,flush=True)

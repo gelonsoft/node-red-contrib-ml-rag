@@ -18,22 +18,29 @@ const initProc = (node) => {
         node.proc.stdout.on('data', (data) => {
             const dataStr=data.toString()
             stdOutData+=data.toString()
-            if (dataStr.indexOf("\n")!==-1) {
+            if (dataStr.indexOf("\t\t\t")!==-1) {
                 node.status(status.DONE)
-                //console.log("stdout data",data)
-                let newPayload
-                try {
-                    newPayload = JSON.parse(stdOutData)
-                } catch (err) {
-                    newPayload = stdOutData
-                }
-                if (newPayload!=="\n" && newPayload!=="\r\n" && newPayload!==undefined && newPayload!==null) {
-                    node.msg.payload=newPayload
-                    var msg = node.msg
-                    if (node.wires.length > 1) {
-                        msg = [node.msg, null]
+                for(const part of dataStr.split("\t\t\t")) {
+                    //console.log("stdout data",data)
+                    let newPayload = part
+                    try {
+                        newPayload = Buffer.from(newPayload, "base64").toString()
+                    } catch (err) {
+
                     }
-                    node.send(msg)
+                    try {
+                        newPayload = JSON.parse(newPayload)
+                    } catch (err) {
+
+                    }
+                    if (newPayload !== "\n" && newPayload !== "\r\n" && newPayload !== undefined && newPayload !== null) {
+                        node.msg.payload = newPayload
+                        var msg = node.msg
+                        if (node.wires.length > 1) {
+                            msg = [node.msg, null]
+                        }
+                        node.send(msg)
+                    }
                 }
                 stdOutData=""
             }

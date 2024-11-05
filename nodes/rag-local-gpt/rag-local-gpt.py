@@ -118,7 +118,7 @@ while True:
 				res=context['document_chain'].invoke({"context": documents, "input": data['input']})
 			content=json.dumps({"state":"success","result":res})
 			sys.stdout = old_stdout
-			print(content+"\n",flush=True)
+			print(base64.b64encode(content.encode()).decode('utf-8')+"\t\t\t\n",flush=True)
 			sys.stdout = silent_stdout
 		else:
 			pass

@@ -36,7 +36,8 @@ while True:
 
 def print_stdout(data: dict):
     sys.stdout = old_stdout
-    print(json.dumps(data) + "\n", flush=True)
+    content=json.dumps(data)
+    print(base64.b64encode(content.encode()).decode('utf-8')+"\t\t\t\n",flush=True)
     sys.stdout = silent_stdout
 
 

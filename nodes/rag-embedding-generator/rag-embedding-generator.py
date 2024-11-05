@@ -4,6 +4,7 @@ old_stdout=sys.__stdout__
 silent_stdout = sys.__stderr__
 sys.stdout = silent_stdout
 
+import traceback
 import json
 from urllib.parse import unquote
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -49,4 +50,7 @@ while True:
 		else:
 			pass
 	except BaseException as e:
-		print(e,file=sys.__stderr__,flush=True)
+		if os.getenv('DEBUG','0')=='1':
+			raise e
+		else:
+			print(traceback.format_exc()+"\n",file=sys.__stderr__,flush=True)

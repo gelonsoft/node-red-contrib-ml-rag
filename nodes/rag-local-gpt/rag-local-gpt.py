@@ -1,16 +1,16 @@
 import sys
-import typing
-
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.documents import Document
-from langchain_core.prompts import PromptTemplate
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 old_stdout=sys.__stdout__
 silent_stdout = sys.__stderr__
 sys.stdout = silent_stdout
 
+import traceback
+import typing
 import json
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from urllib.parse import unquote
 from langchain_huggingface import  HuggingFacePipeline
 import os
@@ -107,4 +107,7 @@ while True:
 		else:
 			pass
 	except BaseException as e:
-		print(e,file=sys.__stderr__,flush=True)
+		if os.getenv('DEBUG','0')=='1':
+			raise e
+		else:
+			print(traceback.format_exc()+"\n",file=sys.__stderr__,flush=True)

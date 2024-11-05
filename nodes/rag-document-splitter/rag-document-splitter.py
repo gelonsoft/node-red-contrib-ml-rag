@@ -52,4 +52,4 @@ while True:
 		if os.getenv('DEBUG','0')=='1':
 			raise e
 		else:
-			print(traceback.format_exc(),file=sys.__stderr__,flush=True)
+			print(traceback.format_exc()+"\n",file=sys.__stderr__,flush=True)

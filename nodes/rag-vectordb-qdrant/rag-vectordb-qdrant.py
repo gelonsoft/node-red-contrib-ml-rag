@@ -4,6 +4,7 @@ old_stdout = sys.__stdout__
 silent_stdout = sys.__stderr__
 sys.stdout = silent_stdout
 
+import traceback
 import json
 from urllib.parse import unquote
 from qdrant_client import QdrantClient
@@ -387,10 +388,12 @@ def main_cycle(data):
 
 while True:
     # read request
-    if True:
-    #try:
+    try:
         data = json.loads(unquote(input()))
         # config reload in runtime
         main_cycle(data)
-    #except BaseException as e:
-    #    print(e, file=sys.__stderr__, flush=True)
+    except BaseException as e:
+        if os.getenv('DEBUG','0')=='1':
+            raise e
+        else:
+            print(traceback.format_exc()+"\n",file=sys.__stderr__,flush=True)

@@ -7,11 +7,8 @@ sys.stdout = silent_stdout
 import traceback
 import typing
 import json
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.documents import Document
 from langchain_core.prompts import PromptTemplate
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
-from urllib.parse import unquote
 from langchain_huggingface import  HuggingFacePipeline
 import os
 import base64
@@ -48,6 +45,7 @@ class PromptTemplateCutContextToSize(PromptTemplate):
 				break
 		return message
 
+config= {}
 #read configurations
 buf=''
 while True:
@@ -60,7 +58,7 @@ while True:
 	else:
 		continue
 
-context={'document_chain':None}
+context={'llm':None}
 
 def create_document_chain(p_config):
 	model_llm = AutoModelForCausalLM.from_pretrained(p_config['modelNameOrPath'])
@@ -75,12 +73,13 @@ def create_document_chain(p_config):
 					top_k=p_config['topK'],
 					top_p = p_config['topP'],
 					temperature=p_config['temperature'],
-					repetition_penalty=p_config['repetitionPenalty'])
+					repetition_penalty=p_config['repetitionPenalty'],
+					return_full_text=False)
 	llm = HuggingFacePipeline(pipeline=pipe)
-	prompt=PromptTemplateCutContextToSize(input_variables=["input","context"],template=p_config['promptTemplate'])
-	prompt.set_llm(model_llm_input_size,llm)
-	document_chain = create_stuff_documents_chain(llm, prompt)
-	return (document_chain,prompt)
+	#prompt=PromptTemplateCutContextToSize(input_variables=["input","context"],template=p_config['promptTemplate'])
+	#prompt.set_llm(model_llm_input_size,llm)
+	#document_chain = create_stuff_documents_chain(llm, prompt)
+	return tokenizer_llm,llm,model_llm_input_size
 
 while True:
 	msg=input()
@@ -93,10 +92,11 @@ while True:
 		else:
 			continue
 		#Lazy load
-		if context['document_chain'] is None:
+		if context['llm'] is None:
 			doc_chain=create_document_chain(config)
-			context['document_chain']=doc_chain[0]
-			context['prompt']=doc_chain[1]
+			context['tokenizer_llm']=doc_chain[0]
+			context['llm']=doc_chain[1]
+			context['model_llm_input_size']=doc_chain[2]
 			doc_chain=None
 		#config reload in runtime
 		if 'config' in data:
@@ -106,17 +106,36 @@ while True:
 			if 'promptTemplate' in data_conf:
 				config['promptTemplate']=data_conf['promptTemplate']
 			doc_chain=create_document_chain(config)
-			context['document_chain']=doc_chain[0]
-			context['prompt']=doc_chain[1]
+			context['tokenizer_llm']=doc_chain[0]
+			context['llm']=doc_chain[1]
+			context['model_llm_input_size']=doc_chain[2]
 			doc_chain=None
 		if 'documents' in data and 'input' in data:
 			documents=data['documents']
-			documents=[Document(page_content=obj['page_content'] if 'page_content' in obj else '') for obj in documents]
-			if 'prompt_only' in data and data['prompt_only']==1:
-				res=context['prompt'].invoke({"context": documents, "input": data['input']})
-			else:
-				res=context['document_chain'].invoke({"context": documents, "input": data['input']})
-			content=json.dumps({"state":"success","result":res})
+			old_context="\n".join([obj['page_content'] if 'page_content' in obj else '' for obj in documents])
+			old_input=data['input']
+			prompt_template=config['promptTemplate']
+			model_llm_input_size=context['model_llm_input_size']
+			llm=context['llm']
+			message=prompt_template.replace('{input}',old_input).replace('{context}',old_context)
+			num_tokens=int(llm.get_num_tokens(message))
+			while num_tokens>model_llm_input_size:
+				cut_tokens=(num_tokens-model_llm_input_size)//3
+				cut_tokens=cut_tokens if cut_tokens>1 else 1
+				if len(old_context) > 0:
+					old_context=old_context.rsplit(' ',cut_tokens)[0]
+					message=prompt_template.replace('{input}',old_input).replace('{context}',old_context)
+					num_tokens=int(llm.get_num_tokens(message))
+				elif len(old_input)> 0:
+					old_input=old_input.rsplit(' ', cut_tokens)[0]
+					message=prompt_template.replace('{input}',old_input).replace('{context}',old_context)
+					num_tokens=int(llm.get_num_tokens(message))
+				else:
+					break
+			old_input=None
+			old_context=None
+			res=llm.invoke([message])
+			content=json.dumps({"state":"success","result":res,"prompt":message})
 			sys.stdout = old_stdout
 			print(base64.b64encode(content.encode()).decode('utf-8')+"\t\t\t\n",flush=True)
 			sys.stdout = silent_stdout

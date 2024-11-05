@@ -32,6 +32,7 @@ const initProc = (node) => {
                     }
                     node.send(msg)
                 }
+                stdOutData=""
             }
         })
 

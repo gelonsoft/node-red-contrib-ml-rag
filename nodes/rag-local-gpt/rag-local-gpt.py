@@ -14,6 +14,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from urllib.parse import unquote
 from langchain_huggingface import  HuggingFacePipeline
 import os
+import base64
 
 if os.environ.get('RAG_DISABLE_SSL_VERIFY', "0") == "1":
 	print("Disabling ssl verify")
@@ -48,7 +49,16 @@ class PromptTemplateCutContextToSize(PromptTemplate):
 		return message
 
 #read configurations
-config = json.loads(unquote(input()))
+buf=''
+while True:
+	msg=input()
+	buf=buf+msg
+	if "\t\t\t" in msg:
+		config = json.loads(base64.b64decode(buf))
+		buf=""
+		break
+	else:
+		continue
 
 context={'document_chain':None}
 
@@ -73,9 +83,15 @@ def create_document_chain(p_config):
 	return (document_chain,prompt)
 
 while True:
+	msg=input()
+	buf=buf+msg
 	#read request
 	try:
-		data = json.loads(unquote(input()))
+		if "\t\t\t" in msg:
+			data = json.loads(base64.b64decode(buf))
+			buf=""
+		else:
+			continue
 		#Lazy load
 		if context['document_chain'] is None:
 			doc_chain=create_document_chain(config)

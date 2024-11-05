@@ -1,5 +1,6 @@
 const status = require('./status.js')
 const {spawn} = require('child_process')
+const { Buffer } = require('node:buffer');
 
 //use 'python3' on linux and 'python' on anything else
 const pcmd = process.platform === 'linux' ? 'python3' : 'python'
@@ -62,14 +63,14 @@ const initProc = (node) => {
         })
 
         //send node configurations to child
-        node.proc?.stdin?.write(encodeURI(JSON.stringify(node.config)) + '\n')
+        node.proc?.stdin?.write(Buffer.from(JSON.stringify(node.config)).toString('base64') + "\t\t\t\n")
     }
 }
 
 //send payload as json to python script
 const python = (node) => {
     initProc(node)
-    node.proc?.stdin?.write(encodeURI(JSON.stringify(node.msg.payload)) + '\n')
+    node.proc?.stdin?.write(Buffer.from(JSON.stringify(node.msg.payload)).toString('base64') + "\t\t\t\n")
 }
 
 module.exports = {

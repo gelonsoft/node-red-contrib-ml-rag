@@ -4,6 +4,7 @@ old_stdout=sys.__stdout__
 silent_stdout = sys.__stderr__
 sys.stdout = silent_stdout
 
+import base64
 import os
 import traceback
 import json
@@ -12,7 +13,16 @@ from langchain_core.documents.base import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 #read configurations
-config = json.loads(unquote(input()))
+buf=''
+while True:
+	msg=input()
+	buf=buf+msg
+	if "\t\t\t" in msg:
+		config = json.loads(base64.b64decode(buf))
+		buf=""
+		break
+	else:
+		continue
 
 text_splitter = RecursiveCharacterTextSplitter(
 	chunk_size = config['chunkSize'], #2048
@@ -20,9 +30,15 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 while True:
+	msg=input()
+	buf=buf+msg
 	#read request
 	try:
-		data = json.loads(unquote(input()))
+		if "\t\t\t" in msg:
+			data = json.loads(base64.b64decode(buf))
+			buf=""
+		else:
+			continue
 
 		#config reload in runtime
 		if 'config' in data:

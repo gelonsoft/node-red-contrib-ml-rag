@@ -4,6 +4,7 @@ old_stdout = sys.__stdout__
 silent_stdout = sys.__stderr__
 sys.stdout = silent_stdout
 
+import base64
 import traceback
 import json
 from urllib.parse import unquote
@@ -18,14 +19,29 @@ if os.environ.get('RAG_DISABLE_SSL_VERIFY', "0") == "1":
 # os.environ['REQUESTS_CA_BUNDLE'] = 'somepath/rootca.crt'
 
 # read configurations
-config = json.loads(unquote(input()))
+buf=''
+while True:
+    msg=input()
+    buf=buf+msg
+    if "\t\t\t" in msg:
+        config = json.loads(base64.b64decode(buf))
+        buf=""
+        break
+    else:
+        continue
 
 hf_embeddings = None
 
 while True:
-    # read request
+    msg=input()
+    buf=buf+msg
+    #read request
     try:
-        data = json.loads(unquote(input()))
+        if "\t\t\t" in msg:
+            data = json.loads(base64.b64decode(buf))
+            buf=""
+        else:
+            continue
         # Lazy load
         if hf_embeddings is None:
             hf_embeddings = HuggingFaceEmbeddings(model_name=config['modelNameOrPath'])

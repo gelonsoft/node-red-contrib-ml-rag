@@ -12,6 +12,7 @@ from langchain_community.document_loaders.parsers.pdf import PyPDFParser
 from langchain_core.document_loaders.base import BaseLoader
 import typing
 from langchain_core.documents.base import Blob, Document
+import base64
 
 class CustomPDFLoader(BaseLoader):
 	def __init__(self, pBytes: bytes, file_path: str='', password: typing.Optional[typing.Union[str, bytes]] = None,
@@ -27,12 +28,27 @@ class CustomPDFLoader(BaseLoader):
 
 
 #read configurations
-config = json.loads(unquote(input()))
+buf=''
+while True:
+	msg=input()
+	buf=buf+msg
+	if "\t\t\t" in msg:
+		config = json.loads(base64.b64decode(buf))
+		buf=""
+		break
+	else:
+		continue
 
 while True:
+	msg=input()
+	buf=buf+msg
 	#read request
 	try:
-		data = json.loads(unquote(input()))
+		if "\t\t\t" in msg:
+			data = json.loads(base64.b64decode(buf))
+			buf=""
+		else:
+			continue
 		documents=None
 		if 'file' in data:
 			documents=PyPDFLoader(file_path=data['file'],extract_images=False).load()

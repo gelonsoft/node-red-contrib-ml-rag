@@ -14,7 +14,7 @@ import numpy as np
 import os
 from typing import Iterable, Optional, List, Sequence, Generator, Any, Union
 from uuid import uuid4
-
+import base64
 if os.environ.get('RAG_DISABLE_SSL_VERIFY', "0") == "1":
     print("Disabling ssl verify")
     import ssl
@@ -22,7 +22,16 @@ if os.environ.get('RAG_DISABLE_SSL_VERIFY', "0") == "1":
     # os.environ['REQUESTS_CA_BUNDLE'] = 'somepath/rootca.crt'
 
 # read configurations
-config = json.loads(unquote(input()))
+buf=''
+while True:
+    msg=input()
+    buf=buf+msg
+    if "\t\t\t" in msg:
+        config = json.loads(base64.b64decode(buf))
+        buf=""
+        break
+    else:
+        continue
 
 
 def print_stdout(data: dict):
@@ -387,9 +396,15 @@ def main_cycle(data):
         pass
 
 while True:
-    # read request
+    msg=input()
+    buf=buf+msg
+    #read request
     try:
-        data = json.loads(unquote(input()))
+        if "\t\t\t" in msg:
+            data = json.loads(base64.b64decode(buf))
+            buf=""
+        else:
+            continue
         # config reload in runtime
         main_cycle(data)
     except BaseException as e:

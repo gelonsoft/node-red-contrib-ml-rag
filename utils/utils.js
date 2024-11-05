@@ -16,22 +16,30 @@ const initProc = (node) => {
         //handle results
         let stdOutData=''
         node.proc.stdout.on('data', (data) => {
-            const dataStr=data.toString()
-            stdOutData+=data.toString()
-            if (dataStr.indexOf("\t\t\t")!==-1) {
+            //console.log("stdout data",encodeURI(data.toString().substring(data.length - 10)))
+            stdOutData+=data.toString().replace(/[\r\n]/g,"")
+            if (stdOutData.indexOf("\t\t\t")!==-1) {
                 node.status(status.DONE)
-                for(const part of dataStr.split("\t\t\t")) {
-                    //console.log("stdout data",data)
-                    let newPayload = part
+                for(const part of stdOutData.split("\t\t\t")) {
+                    if (part.length===0) continue
+                    let newPayload = part.trim()
                     try {
                         newPayload = Buffer.from(newPayload, "base64").toString()
                     } catch (err) {
-
+                        node.msg.payload="Base64Decode error:"+err
+                        if (node.wires.length > 1) {
+                            msg = [null, node.msg]
+                        }
+                        node.send(msg)
                     }
                     try {
                         newPayload = JSON.parse(newPayload)
                     } catch (err) {
-
+                        node.msg.payload="JSON parse error:"+err+"\n\n\n"+newPayload
+                        if (node.wires.length > 1) {
+                            msg = [null, node.msg]
+                        }
+                        node.send(msg)
                     }
                     if (newPayload !== "\n" && newPayload !== "\r\n" && newPayload !== undefined && newPayload !== null) {
                         node.msg.payload = newPayload

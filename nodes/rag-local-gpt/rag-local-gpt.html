@@ -6,21 +6,21 @@
             name: {value: "rag-local-gpt"},
             modelNameOrPath: {value: 'openai-community/gpt2'},
             promptTemplate: {value: "Text:\n{context}\n\nQuestion: {input}"},
-                deviceMap: {value: 'auto'},
-                maxNewTokens: {value: 2048},
-                doSample: {value: 1},
-                topK: {value: 0},
-                topP: {value: 0.15},
-                temperature: {value: 0.3},
-                repetitionPenalty: {value: 1.1},
-            },
-            inputs: 1,
-            outputs: 2,
-            icon: "file.png",
-            label: function () {
-                return this.name || "rag-local-gpt";
-            }
-        });
+            deviceMap: {value: 'auto'},
+            maxNewTokens: {value: 2048},
+            doSample: {value: 1},
+            topK: {value: 0},
+            topP: {value: 0.15},
+            temperature: {value: 0.3},
+            repetitionPenalty: {value: 1.1},
+        },
+        inputs: 1,
+        outputs: 2,
+        icon: "file.png",
+        label: function () {
+            return this.name || "rag-local-gpt";
+        }
+    });
 </script>
 
 <script type="text/x-red" data-template-name="rag-local-gpt">
@@ -35,7 +35,7 @@
     </div>
     <div class="form-row">
         <label for="node-input-promptTemplate"><i class="icon-tag"></i>promptTemplate</label>
-        <input type="text" id="node-input-promptTemplate" placeholder="promptTemplate">
+        <textarea type="text" id="node-input-promptTemplate" placeholder="promptTemplate"/>
     </div>
     <div class="form-row">
         <label for="node-input-deviceMap"><i class="icon-tag"></i>deviceMap</label>

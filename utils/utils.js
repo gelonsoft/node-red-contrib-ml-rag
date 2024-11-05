@@ -20,12 +20,14 @@ const initProc = (node) => {
             if (dataStr.indexOf("\n")!==-1) {
                 node.status(status.DONE)
                 //console.log("stdout data",data)
+                let newPayload
                 try {
-                    node.msg.payload = JSON.parse(stdOutData)
+                    newPayload = JSON.parse(stdOutData)
                 } catch (err) {
-                    node.msg.payload = stdOutData
+                    newPayload = stdOutData
                 }
-                if (node.msg.payload!=="\n" && node.msg.payload!=="\r\n") {
+                if (newPayload!=="\n" && newPayload!=="\r\n" && newPayload!==undefined && newPayload!==null) {
+                    node.msg.payload=newPayload
                     var msg = node.msg
                     if (node.wires.length > 1) {
                         msg = [node.msg, null]

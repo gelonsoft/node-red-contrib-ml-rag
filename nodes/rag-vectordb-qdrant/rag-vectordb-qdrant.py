@@ -194,7 +194,7 @@ def add_document(data):
         collection_name = data['collection_name']
     else:
         collection_name = 'test'
-    with_dense_embeddings=('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0)
+    with_dense_embeddings=not (('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0))
     with_bm42_embeddings=('with_bm42_embeddings' in data) and (data['with_bm42_embeddings']==1)
     embeddings_size = 0
     if 'documents' in data and len(data['documents']) > 0:
@@ -261,7 +261,7 @@ def add_collection(data):
     else:
         raise Exception("Not found collection size in 'size' attribute")
 
-    with_dense_embeddings=('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0)
+    with_dense_embeddings=not (('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0))
     with_bm42_embeddings=('with_bm42_embeddings' in data) and (data['with_bm42_embeddings']==1)
     if not main_state['client'].collection_exists(collection_name):
         if with_dense_embeddings and with_bm42_embeddings:
@@ -329,7 +329,7 @@ def similarity_search(data):
     with_vectors=int(data['with_vectors'])!=0 if 'with_vectors' in data else False
     search_type=data['search_type'] if 'search_type' in data else 'mmr'
     score_threshold=data['score_threshold'] if 'score_threshold' in data else 0.0
-    with_dense_embeddings=('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0)
+    with_dense_embeddings=not (('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0))
     with_bm42_embeddings=('with_bm42_embeddings' in data) and (data['with_bm42_embeddings']==1)
     if with_dense_embeddings and ('embeddings' in data):
         embeddings=data['embeddings']

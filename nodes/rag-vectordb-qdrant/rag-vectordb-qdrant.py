@@ -43,8 +43,8 @@ def print_stdout(data: dict):
 
 def create_client(p_config: dict):
     try:
-        if ('url' in p_config) and len(p_config['url']) > 0:
-            if ('apiKey' in p_config) and len(p_config['apiKey']) > 0:
+        if ('remoteUrl' in p_config) and len(p_config['remoteUrl']) > 0:
+            if ('remoteApiKey' in p_config) and len(p_config['remoteApiKey']) > 0:
                 return QdrantClient(url=p_config['url'], api_key=p_config['apiKey'])
             else:
                 return QdrantClient(url=p_config['url'])

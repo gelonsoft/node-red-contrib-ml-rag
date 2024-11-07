@@ -6,7 +6,7 @@ This module for Node-RED contains a set of nodes which offer Retrieval Augmented
 Be sure to have a working installation of [Node-RED](https://nodered.org/ "Node-RED").  
 Install python and the following libraries:
 * [Python](https://www.python.org/ "Python") 3.9.+ accessible by the command 'python' (on linux 'python3')
-* Full pip install: pip install langchain langchain_core PyPDF2 qdrant_client langchain-community langchain_huggingface langchain_qdrant pypdf sentence-transformers transformers nltk 
+* Full pip install: pip install langchain langchain_core PyPDF2 qdrant_client langchain-community langchain_huggingface langchain_qdrant pypdf sentence-transformers transformers nltk mmh3 
 * Run the following in your python after installation:
     * import nltk
     * nltk.download('stopwords')

@@ -45,9 +45,9 @@ def create_client(p_config: dict):
     try:
         if ('remoteUrl' in p_config) and len(p_config['remoteUrl']) > 0:
             if ('remoteApiKey' in p_config) and len(p_config['remoteApiKey']) > 0:
-                return QdrantClient(url=p_config['url'], api_key=p_config['apiKey'])
+                return QdrantClient(url=p_config['remoteUrl'], api_key=p_config['apiKey'])
             else:
-                return QdrantClient(url=p_config['url'])
+                return QdrantClient(url=p_config['remoteUrl'])
         elif ('localSavePath' in p_config) and len(p_config['localSavePath']) > 0:
             path = p_config['localSavePath']
             l_dir = os.path.dirname(path)

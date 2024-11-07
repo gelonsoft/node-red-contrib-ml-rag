@@ -6,8 +6,12 @@ This module for Node-RED contains a set of nodes which offer Retrieval Augmented
 Be sure to have a working installation of [Node-RED](https://nodered.org/ "Node-RED").  
 Install python and the following libraries:
 * [Python](https://www.python.org/ "Python") 3.9.+ accessible by the command 'python' (on linux 'python3')
-* Full pip install: pip install langchain langchain_core PyPDF2 qdrant_client langchain-community langchain_huggingface langchain_qdrant pypdf sentence-transformers transformers
-
+* Full pip install: pip install langchain langchain_core PyPDF2 qdrant_client langchain-community langchain_huggingface langchain_qdrant pypdf sentence-transformers transformers nltk 
+* Run the following in your python after installation:
+    * import nltk
+    * nltk.download('stopwords')
+    * nltk.download('punkt_tab')
+    * nltk.download('wordnet')
 
 ## Install
 To install the latest version use the Menu - Manage palette option and search for node-red-contrib-ml-rag, or run the following command in your Node-RED user directory (typically ~/.node-red):
@@ -17,8 +21,8 @@ To install the latest version use the Menu - Manage palette option and search fo
 ## Usage
 * rag-pdf-loader: parse PDF files to text page-by-page using LangChain PyPDFLoader
 * rag-document-splitter: split text pages to chunks using LangChain RecursiveCharacterTextSplitter
-* rag-embedding-generator: generate embeddings for text using pretrained Hugging Face sentence transformers models. See https://huggingface.co/models?library=sentence-transformers
-* rag-vectordb-qdrant: awesome vector database Qdrant to store vectors/embedding and similarity search by them
+* rag-embedding-generator: generate regular dense and/or BM42 (sparse) embeddings for text using pretrained Hugging Face sentence transformers models. See https://huggingface.co/models?library=sentence-transformers . More about BM42: https://qdrant.tech/articles/bm42/
+* rag-vectordb-qdrant: awesome vector database Qdrant to store vectors/embedding and similarity search by them using dense vector or BM42 or dense-BM42 hybrid search with maximal marginal relevance (MMR) post-filter. More about BM42: https://qdrant.tech/articles/bm42/  
 * rag-local-gpt: LLM/GPT model to generate text by prompt using pretrained Hugging Face text generation models and LangChain HuggingFacePipeline. See https://huggingface.co/models?pipeline_tag=text-generation
 
 Example flows available here:
@@ -28,4 +32,5 @@ Example flows available here:
 ]
 ```
 ## Thanks
-Thanks to  Gabriele Maurina for awesome nodes - [node-red-contrib-machine-learning](https://github.com/GabrieleMaurina/node-red-contrib-machine-learning "node-red-contrib-machine-learning") 
+Thanks to  Gabriele Maurina for awesome nodes - [node-red-contrib-machine-learning](https://github.com/GabrieleMaurina/node-red-contrib-machine-learning "node-red-contrib-machine-learning")
+Thanks to  Qdrant for BM42 hybrid search - [BM42: New Baseline for Hybrid Search](https://qdrant.tech/articles/bm42/ "BM42: New Baseline for Hybrid Search")

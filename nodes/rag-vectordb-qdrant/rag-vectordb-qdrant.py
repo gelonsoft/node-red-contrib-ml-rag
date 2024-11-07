@@ -6,9 +6,9 @@ sys.stdout = silent_stdout
 
 import traceback
 import json
-from urllib.parse import unquote
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams, PointStruct, UpdateStatus
+from qdrant_client.http.models import Distance, VectorParams, PointStruct, UpdateStatus, SparseVectorParams, \
+    SparseIndexParams, Modifier, SparseVector, Fusion, FusionQuery, Prefetch
 from itertools import islice
 import numpy as np
 import os
@@ -141,7 +141,7 @@ def _build_payloads(
 
     return payloads
 
-def _generate_batches(texts: Iterable[str], embeddings: List[float], metadatas: List[dict], ids: Sequence[Any],
+def _generate_batches(with_dense_embeddings: bool,with_bm42_embeddings:bool,texts: Iterable[str], embeddings: List[float],sparse_embeddings: Any, metadatas: List[dict], ids: Sequence[Any],
                       batch_size: int = 64,
                       ) -> Generator[tuple[list[Any], list[PointStruct]], Any, None]:
     texts_iterator = iter(texts)
@@ -151,18 +151,40 @@ def _generate_batches(texts: Iterable[str], embeddings: List[float], metadatas: 
     while batch_texts := list(islice(texts_iterator, batch_size)):
         batch_metadatas = list(islice(metadatas_iterator, batch_size)) or None
         batch_ids = list(islice(ids_iterator, batch_size))
-        points = [
-            PointStruct(
-                id=point_id,
-                vector=vector,
-                payload=payload,
-            )
-            for point_id, vector, payload in zip(
-                batch_ids,
-                [{"": vector} for vector in embeddings],
-                _build_payloads(batch_texts, batch_metadatas),
-            )
-        ]
+        if with_dense_embeddings and with_bm42_embeddings:
+            points = [
+                PointStruct(id=point_id,vector={
+                    "":vector,
+                    "sparse":sparse_vector
+                },payload=payload) for point_id, vector,sparse_vector, payload in
+                zip(
+                    batch_ids,
+                    [vector for vector in embeddings],
+                    [SparseVector(indices=vector['indices'],values=vector['values']) for vector in sparse_embeddings],
+                    _build_payloads(batch_texts, batch_metadatas),
+                )
+            ]
+        elif with_bm42_embeddings:
+            points = [
+                PointStruct(id=point_id,vector={
+                    "sparse":sparse_vector
+                },payload=payload) for point_id, sparse_vector, payload in
+                zip(
+                    batch_ids,
+                    [SparseVector(indices=vector['indices'],values=vector['values']) for vector in sparse_embeddings],
+                    _build_payloads(batch_texts, batch_metadatas),
+                )
+            ]
+        else:
+            points = [
+                PointStruct(id=point_id,vector={"":vector},payload=payload) for point_id, vector, payload in
+                zip(
+                    batch_ids,
+                    [vector for vector in embeddings],
+                    _build_payloads(batch_texts, batch_metadatas),
+                )
+            ]
+
 
         yield batch_ids, points
 
@@ -172,33 +194,54 @@ def add_document(data):
         collection_name = data['collection_name']
     else:
         collection_name = 'test'
+    with_dense_embeddings=('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0)
+    with_bm42_embeddings=('with_bm42_embeddings' in data) and (data['with_bm42_embeddings']==1)
     embeddings_size = 0
     if 'documents' in data and len(data['documents']) > 0:
         documents = data['documents']
-        if 'embeddings' not in documents[0]:
+        if with_dense_embeddings and ('embeddings' not in documents[0]):
             raise Exception("No 'embeddings' attribute in documents")
         embeddings_size = len(documents[0]['embeddings'])
     else:
         return
 
     if not (main_state['client'].collection_exists(collection_name)):
-        main_state['client'].create_collection(
-            collection_name=collection_name,
-            vectors_config=VectorParams(size=embeddings_size, distance=Distance.COSINE),
-        )
+        if with_dense_embeddings and with_bm42_embeddings:
+            main_state['client'].create_collection(
+                collection_name=collection_name,
+                vectors_config=VectorParams(size=embeddings_size, distance=Distance.COSINE),
+                sparse_vectors_config={
+                    "sparse":SparseVectorParams(index=SparseIndexParams(on_disk=False),modifier=Modifier.IDF)
+                },
+            )
+        elif with_bm42_embeddings:
+            main_state['client'].create_collection(
+                collection_name=collection_name,
+                vectors_config={},
+                sparse_vectors_config={
+                    "sparse":SparseVectorParams(index=SparseIndexParams(on_disk=False),modifier=Modifier.IDF)
+                },
+            )
+        else:
+            main_state['client'].create_collection(
+                collection_name=collection_name,
+                vectors_config=VectorParams(size=embeddings_size, distance=Distance.COSINE),
+            )
     else:
-        collection_info = main_state['client'].get_collection(collection_name)
-        if collection_info.config.params.vectors.size != embeddings_size:
-            raise Exception("'embeddings' size in documents (" + str(
-                embeddings_size) + ") <> vector size of collection in storage (" + str(
-                collection_info.config.params.vectors.size) + ")")
+        if with_dense_embeddings:
+            collection_info = main_state['client'].get_collection(collection_name)
+            if collection_info.config.params.vectors.size != embeddings_size:
+                raise Exception("'embeddings' size in documents (" + str(
+                    embeddings_size) + ") <> vector size of collection in storage (" + str(
+                    collection_info.config.params.vectors.size) + ")")
     ids = [obj['id'] if 'id' in obj else uuid4().hex for obj in documents]
     texts = [obj['page_content'] if 'page_content' in obj else '' for obj in documents]
     metadatas = [obj['metadata'] if 'metadata' in obj else {} for obj in documents]
     embeddings = [obj['embeddings'] if 'embeddings' in obj else [] for obj in documents]
+    sparse_embeddings = [obj['sparse_embeddings'] if 'sparse_embeddings' in obj else [] for obj in documents]
     added_ids = []
-    for batch_ids, points in _generate_batches(
-            texts, embeddings, metadatas, ids, batch_size=64
+    for batch_ids, points in _generate_batches(with_dense_embeddings,with_bm42_embeddings,
+            texts, embeddings,sparse_embeddings, metadatas, ids, batch_size=64
     ):
         main_state['client'].upsert(
             collection_name=collection_name, points=points
@@ -218,11 +261,31 @@ def add_collection(data):
     else:
         raise Exception("Not found collection size in 'size' attribute")
 
+    with_dense_embeddings=('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0)
+    with_bm42_embeddings=('with_bm42_embeddings' in data) and (data['with_bm42_embeddings']==1)
     if not main_state['client'].collection_exists(collection_name):
-        main_state['client'].create_collection(
-            collection_name=collection_name,
-            vectors_config=VectorParams(size=collection_size, distance=Distance.COSINE),
-        )
+        if with_dense_embeddings and with_bm42_embeddings:
+            main_state['client'].create_collection(
+                collection_name=collection_name,
+                vectors_config=VectorParams(size=collection_size, distance=Distance.COSINE),
+                sparse_vectors_config={
+                    "sparse":SparseVectorParams(index=SparseIndexParams(on_disk=False),modifier=Modifier.IDF)
+                },
+            )
+        elif with_bm42_embeddings:
+            main_state['client'].create_collection(
+                collection_name=collection_name,
+                vectors_config={},
+                sparse_vectors_config={
+                    "sparse":SparseVectorParams(index=SparseIndexParams(on_disk=False),modifier=Modifier.IDF)
+                },
+            )
+        else:
+            main_state['client'].create_collection(
+                collection_name=collection_name,
+                vectors_config=VectorParams(size=collection_size, distance=Distance.COSINE),
+            )
+
     else:
         if 'drop_if_exists' in data and (data['drop_if_exists'] == 1 or data['drop_if_exists'] == "1"):
             main_state['client'].delete_collection(collection_name)
@@ -266,22 +329,60 @@ def similarity_search(data):
     with_vectors=int(data['with_vectors'])!=0 if 'with_vectors' in data else False
     search_type=data['search_type'] if 'search_type' in data else 'mmr'
     score_threshold=data['score_threshold'] if 'score_threshold' in data else 0.0
-    if 'embeddings' in data:
+    with_dense_embeddings=('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0)
+    with_bm42_embeddings=('with_bm42_embeddings' in data) and (data['with_bm42_embeddings']==1)
+    if with_dense_embeddings and ('embeddings' in data):
         embeddings=data['embeddings']
     else:
         raise Exception("No 'embeddings' attribute exists")
+    if with_bm42_embeddings and ('sparse_embeddings' in data):
+        sparse_embeddings=data['sparse_embeddings']
+    else:
+        raise Exception("No 'sparse_embeddings' attribute exists")
     if not main_state['client'].collection_exists(collection_name):
         raise Exception("Collection not exists")
-    results=main_state['client'].query_points(
-        query=embeddings,
-        collection_name=collection_name,
-        limit=limit+15 if search_type=='mmr' else limit,
-        with_payload=with_payload,
-        with_vectors=True if search_type=='mmr' else with_vectors,
-        score_threshold=score_threshold,
-        using=""
-    ).points
 
+    if with_dense_embeddings and with_bm42_embeddings:
+        results=main_state['client'].query_points(
+            collection_name=collection_name,
+            limit=limit+15 if search_type=='mmr' else limit,
+            with_payload=with_payload,
+            with_vectors=True if search_type=='mmr' else with_vectors,
+            prefetch=[
+                Prefetch(
+                    query=SparseVector(indices=sparse_embeddings['indices'], values=sparse_embeddings['values']),
+                    using="sparse",
+                    limit=limit+15 if search_type=='mmr' else limit,
+                ),
+                Prefetch(
+                    query=embeddings,
+                    using="",
+                    limit=limit+15 if search_type=='mmr' else limit,
+                ),
+            ],
+            score_threshold=score_threshold,
+            query=FusionQuery(fusion=Fusion.RRF)
+        ).points
+    elif with_bm42_embeddings:
+        results=main_state['client'].query_points(
+            query=SparseVector(indices=sparse_embeddings['indices'], values=sparse_embeddings['values']),
+            collection_name=collection_name,
+            limit=limit+15 if search_type=='mmr' else limit,
+            with_payload=with_payload,
+            with_vectors=True if search_type=='mmr' else with_vectors,
+            score_threshold=score_threshold,
+            using="sparse"
+        ).points
+    else:
+        results=main_state['client'].query_points(
+            query=embeddings,
+            collection_name=collection_name,
+            limit=limit+15 if search_type=='mmr' else limit,
+            with_payload=with_payload,
+            with_vectors=True if search_type=='mmr' else with_vectors,
+            score_threshold=score_threshold,
+            using=""
+        ).points
     if search_type=='mmr':
         embeddings_new = [
             result.vector

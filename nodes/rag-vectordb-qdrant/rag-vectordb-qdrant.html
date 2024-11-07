@@ -47,13 +47,21 @@
         <dd>command is one of add_document|add_collection|delete_collection|delete_documents|scroll|query_by_ids|similarity_search</dd>
         <p>args for payload.command="add_document"</p>
           <dt>payload.documents
-            <span class="property-type">array of {id?:string|int,page_content:string,metadata?:json,embeddings:float[]}</span>
+            <span class="property-type">{page_content:string,metadata?:json,embeddings?:float[],sparse_embeddings?:{indices:int[],values=float[]}}[]}</span>
             </dt>
            <dd>documents to add</dd>
             <dt>payload.collection_name
             <span class="property-type">string</span>
             </dt>
            <dd>collection name</dd>
+            <dt>payload.with_dense_embeddings
+            <span class="property-type">int - 0 or 1</span>
+            </dt>
+           <dd>use dense embeddings or not. Default - 1</dd>
+            <dt>payload.with_bm42_embeddings
+            <span class="property-type">int - 0 or 1</span>
+            </dt>
+           <dd>use sparse embeddings or not. Default - 0</dd>
         <p>args for payload.command="add_collection"</p>
             <dt>payload.collection_name
             <span class="property-type">string</span>
@@ -67,6 +75,14 @@
             <span class="property-type">int 1 or 0</span>
             </dt>
            <dd>if 1 then drops existing collection with this name</dd>
+            <dt>payload.with_dense_embeddings
+            <span class="property-type">int - 0 or 1</span>
+            </dt>
+           <dd>use dense embeddings or not. Default - 1</dd>
+            <dt>payload.with_bm42_embeddings
+            <span class="property-type">int - 0 or 1</span>
+            </dt>
+           <dd>use sparse embeddings or not. Default - 0</dd>
         <p>args for payload.command="delete_collection"</p>
             <dt>payload.collection_name
             <span class="property-type">string</span>
@@ -106,6 +122,14 @@
             <span class="property-type">float 0..1</span>
             </dt>
            <dd>filter documents with score less than score_threshold</dd>
+            <dt>payload.with_dense_embeddings
+            <span class="property-type">int - 0 or 1</span>
+            </dt>
+           <dd>use dense embeddings or not. Default - 1</dd>
+            <dt>payload.with_bm42_embeddings
+            <span class="property-type">int - 0 or 1</span>
+            </dt>
+           <dd>use sparse embeddings or not. Default - 0</dd>
         <p>args for payload.command="scroll"</p>
             <dt>payload.collection_name
             <span class="property-type">string</span>
@@ -172,17 +196,17 @@
             <p>Output for command "scroll"</p>
             <dl class="message-properties">
                 <dt>payload<span class="property-type">json</span></dt>
-                <dd>{"state":"success","offset":int|str - last document id,"documents":{page_content?:string,metadata?:json,embeddings?:float[]}[]}</dd>
+                <dd>{"state":"success","offset":int|str - last document id,"documents":{page_content?:string,metadata?:json,embeddings?:float[],sparse_embeddings?:{indices:int[],values=float[]}[]}[]}[]}</dd>
             </dl>
             <p>Output for command "query_by_ids"</p>
             <dl class="message-properties">
                 <dt>payload<span class="property-type">json</span></dt>
-                <dd>{"state":"success","documents":{page_content?:string,metadata?:json,embeddings?:float[]}[]}</dd>
+                <dd>{"state":"success","documents":{page_content?:string,metadata?:json,embeddings?:float[],sparse_embeddings?:{indices:int[],values=float[]}[]}[]}[]}</dd>
             </dl>
             <p>Output for command "similarity_search"</p>
             <dl class="message-properties">
                 <dt>payload<span class="property-type">json</span></dt>
-                <dd>{"state":"success","documents":{score:float 0..1,page_content?:string,metadata?:json,embeddings?:float[]}[]}}</dd>
+                <dd>{"state":"success","documents":{score:float 0..1,page_content?:string,metadata?:json,embeddings?:float[],sparse_embeddings?:{indices:int[],values=float[]}[]}[]}}</dd>
             </dl>
         </li>
         <li>Standard error
@@ -201,6 +225,7 @@
     <h3>References</h3>
     <ul>
         <li><a href="https://qdrant.tech/">Qdrant</a> - awesome vector database</li>
+        <li><a href="https://qdrant.tech/articles/bm42/">BM42: New Baseline for Hybrid Search</a></li>
         <li><a href="https://github.com/gelonsoft/node-red-contrib-ml-rag">GitHub</a> - the nodes github repository</li>
     </ul>
 </script>

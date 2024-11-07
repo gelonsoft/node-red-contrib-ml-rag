@@ -28,22 +28,22 @@
 </script>
 
 <script type="text/x-red" data-help-name="rag-embedding-generator">
-    <p>A node that generates 'embeddings' field for documents using HuggingFace sentense-transformers model via Langchain HuggingFaceEmbeddings)</p>
+    <p>A node that generates 'embeddings' and/or 'sparse_embeddings' (BM42 sparse vector) fields for documents using HuggingFace sentense-transformers model via Langchain HuggingFaceEmbeddings)</p>
 
     <h3>Inputs</h3>
     <dl class="message-properties">
-        <dt>payload.documents
-            <span class="property-type">array of {page_content:string,metadata?:json}</span>
+        <dt>payload<span class="property-type">json</span></dt>
+            <dd>{documents:{page_content:string,metadata?:json}[],with_dense_embeddings?:1 or 0,with_bm42_embeddings?:0 or 1}</dd>
         </dt>
-        <dd>array of documents</dd>
+        <dd>array of documents and properties</dd>
     </dl>
 
     <h3>Outputs</h3>
     <ol class="node-ports">
         <li>Standard output
             <dl class="message-properties">
-                <dt>payload <span class="property-type">json</span></dt>
-                <dd>{"state":"success","documents":{page_content:string,metadata?:json,embeddings:float[]}[]</dd>
+                <dt>payload<span class="property-type">json</span></dt>
+                <dd>{"state":"success",documents:{page_content:string,metadata?:json,embeddings?:float[],sparse_embeddings?:{indices:int[],values=float[]}}[]</dd>
             </dl>
         </li>
         <li>Standard error
@@ -62,6 +62,7 @@
     <h3>References</h3>
     <ul>
         <li><a href="https://huggingface.co/models?library=sentence-transformers">Other Hugging Face sentence-transformers</a></li>
+        <li><a href="https://qdrant.tech/articles/bm42/">BM42: New Baseline for Hybrid Search</a></li>
         <li><a href="https://github.com/gelonsoft/node-red-contrib-ml-rag">GitHub</a> - the nodes github repository</li>
     </ul>
 </script>

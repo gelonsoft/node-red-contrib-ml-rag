@@ -93,7 +93,7 @@ def convert_outputs_to_sparse_object(tokens,attentions):
         add_word_weight(word_weights,current_word,current_weight)
     word_weights=rescore(word_weights)
     indices, values = zip(*word_weights.items())
-    return {'indices':np.array(indices),'values':np.array(values)}
+    return {'indices':np.array(indices).tolist(),'values':np.array(values).tolist()}
 
 class CustomHuggingFaceEmbeddings(HuggingFaceEmbeddings):
     def get_client(self):

@@ -95,6 +95,14 @@ def convert_outputs_to_sparse_object(tokens,attentions):
     indices, values = zip(*word_weights.items())
     return {'indices':np.array(indices),'values':np.array(values)}
 
+class CustomHuggingFaceEmbeddings(HuggingFaceEmbeddings):
+    def get_client(self):
+        if hasattr(self,'client'):
+            return self.client
+        elif hasattr(self,'_client'):
+            return self._client
+        Exception("HuggingFaceEmbeddings client not found")
+
 while True:
     msg=input()
     buf=buf+msg
@@ -107,13 +115,13 @@ while True:
             continue
         # Lazy load
         if hf_embeddings is None:
-            hf_embeddings = HuggingFaceEmbeddings(model_name=config['modelNameOrPath'])
+            hf_embeddings = CustomHuggingFaceEmbeddings(model_name=config['modelNameOrPath'])
         # config reload in runtime
         if 'config' in data:
             data_conf = data['config']
             if 'modelNameOrPath' in data_conf:
                 config['modelNameOrPath'] = data_conf['modelNameOrPath']
-            hf_embeddings = HuggingFaceEmbeddings(model_name=config['modelNameOrPath'])
+            hf_embeddings = CustomHuggingFaceEmbeddings(model_name=config['modelNameOrPath'])
         if 'documents' in data:
             try:
                 documents = data['documents']
@@ -137,8 +145,9 @@ while True:
 
             if with_bm42_embeddings:
                 init_sparse_embeddings_context()
-                emb_tokenizer=hf_embeddings.client.tokenizer
-                emb_model=hf_embeddings.client._first_module().auto_model
+                emb_tokenizer=hf_embeddings.get_client().tokenizer
+                emb_model=hf_embeddings.get_client()._first_module().auto_model
+
                 for idx, text in enumerate(texts):
                     inputs = emb_tokenizer(text=text, return_tensors="pt", truncation=True, max_length=512)
                     with torch.no_grad():

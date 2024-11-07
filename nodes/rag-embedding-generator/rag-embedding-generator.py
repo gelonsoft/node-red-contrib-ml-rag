@@ -136,7 +136,7 @@ while True:
             texts = [obj['page_content'] if 'page_content' in obj else '' for obj in documents]
             # documents=[Document(page_content=obj['page_content'] if 'page_content' in obj else '',metadata=obj['metadata'] if 'metadata' in obj else None) for obj in documents]
             embeddings=None
-            with_dense_embeddings=not (('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0))
+            with_dense_embeddings= not (('with_dense_embeddings' in data) and (data['with_dense_embeddings']==0))
             with_bm42_embeddings=('with_bm42_embeddings' in data) and (data['with_bm42_embeddings']==1)
             if with_dense_embeddings:
                 embeddings = hf_embeddings.embed_documents(texts)

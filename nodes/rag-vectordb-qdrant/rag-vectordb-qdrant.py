@@ -1,3 +1,4 @@
+import hashlib
 import sys
 
 old_stdout = sys.__stdout__
@@ -13,7 +14,6 @@ from itertools import islice
 import numpy as np
 import os
 from typing import Iterable, Optional, List, Sequence, Generator, Any, Union
-from uuid import uuid4
 import base64
 
 if os.environ.get('RAG_DISABLE_SSL_VERIFY', "0") == "1":
@@ -166,7 +166,7 @@ def _generate_batches(with_dense_embeddings: bool, with_bm42_embeddings: bool, t
                       ) -> Generator[tuple[list[Any], list[PointStruct]], Any, None]:
     texts_iterator = iter(texts)
     metadatas_iterator = iter(metadatas or [])
-    ids_iterator = iter(ids or [uuid4().hex for _ in iter(texts)])
+    ids_iterator = iter(ids or [hashlib.sha256(t.encode()).hexdigest() for t in texts])
 
     while batch_texts := list(islice(texts_iterator, batch_size)):
         batch_metadatas = list(islice(metadatas_iterator, batch_size)) or None
@@ -253,7 +253,7 @@ def add_document(data):
                 raise Exception("'embeddings' size in documents (" + str(
                     embeddings_size) + ") <> vector size of collection in storage (" + str(
                     collection_info.config.params.vectors.size) + ")")
-    ids = [obj['id'] if 'id' in obj else uuid4().hex for obj in documents]
+    ids = [obj['id'] if 'id' in obj else hashlib.sha256(obj['texts'].encode()).hexdigest() for obj in documents]
     texts = [obj['page_content'] if 'page_content' in obj else '' for obj in documents]
     metadatas = [obj['metadata'] if 'metadata' in obj else {} for obj in documents]
     embeddings = [obj['embeddings'] if 'embeddings' in obj else [] for obj in documents]
